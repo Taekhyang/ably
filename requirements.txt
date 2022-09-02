@@ -5,3 +5,4 @@ PyJWT==2.4.0
 loguru==0.6.0
 bcrypt==4.0.0
 uvicorn==0.18.3
+PyYAML==6.0
