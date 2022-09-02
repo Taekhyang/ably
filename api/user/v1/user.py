@@ -22,11 +22,7 @@ from core.utils.logger import debugger
 from core.utils.token_helper import TokenHelper
 from core.utils.session_generator import generate_random_session_id
 from core.utils.sms_sender import send_sms
-from core.exceptions import (
-    SMSSenderException,
-    NotFoundException,
-    UnauthorizedException
-)
+from core.exceptions import *
 
 
 user_router = APIRouter()
@@ -80,6 +76,9 @@ async def verify_sms_auth_code(request: AuthCodeVerificationRequestSchema):
         raise NotFoundException
 
     if temp_sms_auth.auth_code == request.auth_code and temp_sms_auth.phone == request.phone:
+        if temp_sms_auth.code_sent_at + dt.timedelta(minutes=5) < dt.datetime.now():
+            raise SMSAuthTimeoutException
+
         await UserService().set_verified_flag(request.session_id)
         return {"is_verified": True}
     return {"is_verified": False}
