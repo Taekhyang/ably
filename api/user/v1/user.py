@@ -1,5 +1,6 @@
 import random
 import datetime as dt
+import bcrypt
 
 from fastapi import APIRouter, Depends, Query, Request
 
@@ -13,7 +14,11 @@ from core.utils.logger import debugger
 from core.utils.token_helper import TokenHelper
 from core.utils.session_generator import generate_random_session_id
 from core.utils.sms_sender import send_sms
-from core.exceptions import SMSSenderException, NotFoundException
+from core.exceptions import (
+    SMSSenderException,
+    NotFoundException,
+    UnauthorizedException
+)
 
 
 user_router = APIRouter()
@@ -78,3 +83,31 @@ async def verify_sms_auth_code(request: AuthCodeVerificationRequestSchema):
         await UserService().set_verified_flag(request.session_id)
         return {"is_verified": True}
     return {"is_verified": False}
+
+
+@user_router.post(
+    "/signup"
+)
+async def signup_user(request: UserSignUpRequestSchema):
+    temp_sms_auth = await UserService().get_temp_sms_auth(request.session_id)
+    if not temp_sms_auth:
+        raise NotFoundException
+
+    if not temp_sms_auth.is_verified:
+        raise UnauthorizedException
+
+    hashed_pw = bcrypt.hashpw(request.password.encode("utf8"), bcrypt.gensalt())
+    decoded_hash_pw = hashed_pw.decode("utf8")
+
+    user = await UserService().create_user(
+        request.name,
+        request.nickname,
+        request.phone,
+        request.email,
+        decoded_hash_pw
+    )
+
+    token_helper = TokenHelper()
+    access_token = token_helper.encode({"user_id": user.id}, expire_period=3600)
+    refresh_token = token_helper.encode({"user_id": user.id}, expire_period=3600 * 24 * 7)
+    return {"access_token": access_token, "refresh_token": refresh_token}
