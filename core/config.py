@@ -17,6 +17,10 @@ class BaseConfig(BaseSettings):
 
     JWT_SECRET_KEY: str
     JWT_ALGORITHM: str
+    JWT_ACCESS_TOKEN_EXPIRE_SECONDS: int
+    JWT_REFRESH_TOKEN_EXPIRE_SECONDS: int
+
+    AUTH_CODE_EXPIRE_SECONDS: int
 
     class Config:
         case_sensitive = False

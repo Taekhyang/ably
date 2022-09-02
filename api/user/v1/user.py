@@ -22,6 +22,7 @@ from core.utils.logger import debugger
 from core.utils.token_helper import TokenHelper
 from core.utils.session_generator import generate_random_session_id
 from core.utils.sms_sender import send_sms
+from core.config import config
 from core.exceptions import *
 
 
@@ -76,7 +77,7 @@ async def verify_sms_auth_code(request: AuthCodeVerificationRequestSchema):
         raise NotFoundException
 
     if temp_sms_auth.auth_code == request.auth_code and temp_sms_auth.phone == request.phone:
-        if temp_sms_auth.code_sent_at + dt.timedelta(minutes=5) < dt.datetime.now():
+        if temp_sms_auth.code_sent_at + dt.timedelta(seconds=config.AUTH_CODE_EXPIRE_SECONDS) < dt.datetime.now():
             raise SMSAuthTimeoutException
 
         await UserService().set_verified_flag(request.session_id)
@@ -107,8 +108,8 @@ async def signup_user(request: UserSignUpRequestSchema, background_tasks: Backgr
     )
 
     token_helper = TokenHelper()
-    access_token = token_helper.encode({"user_id": user.id}, expire_period=3600)
-    refresh_token = token_helper.encode({"user_id": user.id}, expire_period=3600 * 24 * 7)
+    access_token = token_helper.encode({"user_id": user.id}, expire_period=config.JWT_ACCESS_TOKEN_EXPIRE_SECONDS)
+    refresh_token = token_helper.encode({"user_id": user.id}, expire_period=config.JWT_REFRESH_TOKEN_EXPIRE_SECONDS)
 
     background_tasks.add_task(cleanup_temp_sms_auth, request.session_id)
     return {"access_token": access_token, "refresh_token": refresh_token}
