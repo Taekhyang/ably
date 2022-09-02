@@ -2,7 +2,13 @@ import random
 import datetime as dt
 import bcrypt
 
-from fastapi import APIRouter, Depends, Query, Request
+from fastapi import (
+    APIRouter,
+    BackgroundTasks,
+    Depends,
+    Query,
+    Request
+)
 
 from app.user.schemas import *
 from app.user.services import UserService
@@ -11,6 +17,7 @@ from core.fastapi.dependencies import (
     PermissionDependency,
     IsAuthenticated
 )
+from core.fastapi.background_tasks import cleanup_temp_sms_auth
 from core.utils.logger import debugger
 from core.utils.token_helper import TokenHelper
 from core.utils.session_generator import generate_random_session_id
@@ -81,7 +88,7 @@ async def verify_sms_auth_code(request: AuthCodeVerificationRequestSchema):
 @user_router.post(
     "/signup"
 )
-async def signup_user(request: UserSignUpRequestSchema):
+async def signup_user(request: UserSignUpRequestSchema, background_tasks: BackgroundTasks):
     temp_sms_auth = await UserService().get_temp_sms_auth(request.session_id)
     if not temp_sms_auth:
         raise NotFoundException
@@ -103,6 +110,8 @@ async def signup_user(request: UserSignUpRequestSchema):
     token_helper = TokenHelper()
     access_token = token_helper.encode({"user_id": user.id}, expire_period=3600)
     refresh_token = token_helper.encode({"user_id": user.id}, expire_period=3600 * 24 * 7)
+
+    background_tasks.add_task(cleanup_temp_sms_auth, request.session_id)
     return {"access_token": access_token, "refresh_token": refresh_token}
 
 
