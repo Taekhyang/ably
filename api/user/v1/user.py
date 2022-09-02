@@ -6,6 +6,7 @@ from fastapi import APIRouter, Depends, Query, Request
 
 from app.user.schemas import *
 from app.user.services import UserService
+from app.user.models import User
 from core.fastapi.dependencies import (
     PermissionDependency,
     IsAuthenticated
@@ -22,14 +23,6 @@ from core.exceptions import (
 
 
 user_router = APIRouter()
-
-
-@user_router.get(
-    "/profile",
-    dependencies=[Depends(PermissionDependency([IsAuthenticated]))]
-)
-async def get_user_profile(request: Request):
-    pass
 
 
 @user_router.get(
@@ -111,3 +104,14 @@ async def signup_user(request: UserSignUpRequestSchema):
     access_token = token_helper.encode({"user_id": user.id}, expire_period=3600)
     refresh_token = token_helper.encode({"user_id": user.id}, expire_period=3600 * 24 * 7)
     return {"access_token": access_token, "refresh_token": refresh_token}
+
+
+@user_router.get(
+    "/profile",
+    response_model=User,
+    response_model_exclude={"id"},
+    dependencies=[Depends(PermissionDependency([IsAuthenticated]))]
+)
+async def get_user_profile(request: Request):
+    user = UserService().get_user(request.user.id)
+    return user

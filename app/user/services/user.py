@@ -28,6 +28,12 @@ class UserService:
         await session.flush()
         return user
 
+    async def get_user(self, user_id: int) -> User:
+        query = select(User).where(User.id == user_id)
+        result = await session.execute(query)
+        user = result.scalars().first()
+        return user
+
     async def get_user_by_phone(self, phone: str) -> Union[User, None]:
         query = select(User).where(User.phone == phone)
         result = await session.execute(query)
