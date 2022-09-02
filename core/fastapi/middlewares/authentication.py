@@ -8,7 +8,7 @@ from starlette.middleware.authentication import (
 from starlette.requests import HTTPConnection
 
 from core.config import config
-from ..schemas import CurrentUser
+from core.fastapi.schemas import CurrentUser
 
 
 class AuthBackend(AuthenticationBackend):
