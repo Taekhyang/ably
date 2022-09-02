@@ -8,7 +8,7 @@ from .base import (
     UnauthorizedException,
 )
 from .token import DecodeTokenException, ExpiredTokenException
-
+from .user import SMSSenderException
 
 __all__ = [
     "CustomException",
@@ -20,4 +20,5 @@ __all__ = [
     "UnauthorizedException",
     "DecodeTokenException",
     "ExpiredTokenException",
+    "SMSSenderException",
 ]
