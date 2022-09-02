@@ -13,6 +13,7 @@ from core.fastapi.middlewares import (
     AuthBackend,
     SQLAlchemyMiddleware,
 )
+from core.db import engines, Base
 from core.utils.logger import debugger, init_logger
 from typing import List
 
@@ -89,12 +90,20 @@ def create_app() -> FastAPI:
 app = create_app()
 
 
+async def create_db_tables():
+    async with engines["writer"].begin() as conn:
+        await conn.run_sync(Base.metadata.create_all)
+
+
 @app.on_event('startup')
 async def startup():
     init_logger()
-    debugger.info('Server starting up...')
+    debugger.debug('Server starting up...')
+
+    await create_db_tables()
+    debugger.debug('Created default tables')
 
 
 @app.on_event('shutdown')
 async def shutdown_event():
-    debugger.info('Server shutting down...')
+    debugger.debug('Server shutting down...')
