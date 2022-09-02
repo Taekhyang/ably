@@ -117,10 +117,10 @@ async def signup_user(request: UserSignUpRequestSchema, background_tasks: Backgr
 
 @user_router.get(
     "/profile",
-    response_model=User,
+    response_model=UserProfileResponseSchema,
     response_model_exclude={"id"},
     dependencies=[Depends(PermissionDependency([IsAuthenticated]))]
 )
 async def get_user_profile(request: Request):
-    user = UserService().get_user(request.user.id)
+    user = await UserService().get_user(request.user.id)
     return user
