@@ -5,7 +5,7 @@ from core.db.mixins import TimestampMixin
 
 
 class User(Base, TimestampMixin):
-    __tablename__ = 'users'
+    __tablename__ = "users"
 
     id = Column(Integer, primary_key=True, autoincrement=True)
     name = Column(String(255), nullable=False)
@@ -16,7 +16,7 @@ class User(Base, TimestampMixin):
 
 
 class TempSMSAuth(Base):
-    __tablename__ = 'temp_sms_auth'
+    __tablename__ = "temp_sms_auth"
 
     id = Column(Integer, primary_key=True, autoincrement=True)
     session_id = Column(String(255), nullable=False, index=True)

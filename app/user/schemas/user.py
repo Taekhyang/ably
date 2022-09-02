@@ -3,23 +3,7 @@ import re
 from pydantic import BaseModel, Field, validator
 
 
-class DuplicateEmailCheckRequestSchema(BaseModel):
-    email: str = Field(..., description="이메일", lte=255)
-
-
-class DuplicatePhoneCheckRequestSchema(BaseModel):
-    phone: str = Field(..., description="휴대폰 번호")
-
-
-class SMSAuthCodeRequestSchema(BaseModel):
-    phone: str = Field(..., description="인증받을 휴대폰 번호")
-
-
-class SMSAuthCodeResponseSchema(BaseModel):
-    session_id: str = Field(..., description="Client Session ID")
-
-
-class AuthCodeValidationRequestSchema(BaseModel):
+class AuthCodeVerificationRequestSchema(BaseModel):
     session_id: str = Field(..., description="Client Session ID")
     phone: str = Field(..., description="인증받을 휴대폰 번호")
     auth_code: str = Field(..., description="인증번호", le=6)
@@ -31,6 +15,7 @@ class UserSignUpRequestSchema(BaseModel):
     email: str = Field(..., description="이메일", le=255)
     phone: str = Field(..., description="휴대폰 번호")
     password: str = Field(..., description="8자리 이상 30자리 이하 비밀번호", ge=8, le=30)
+    session_id: str = Field(..., description="Client Session ID")
 
     class Config:
         orm_mode = True
