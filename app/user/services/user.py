@@ -81,3 +81,12 @@ class UserService:
     async def delete_temp_sms_auth(self, session_id: str) -> None:
         query = delete(TempSMSAuth).where(TempSMSAuth.session_id == session_id)
         await session.execute(query)
+
+    @Transactional()
+    async def reset_password(self, user_id, password):
+        query = (
+            update(User).
+                where(User.id == user_id).
+                values(password=password)
+        )
+        await session.execute(query)
