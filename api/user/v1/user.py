@@ -103,7 +103,7 @@ async def signup_user(request: UserSignUpRequestSchema, background_tasks: Backgr
     hashed_pw = bcrypt.hashpw(request.password.encode("utf8"), bcrypt.gensalt())
     decoded_hash_pw = hashed_pw.decode("utf8")
 
-    user = await UserService().create_user(
+    user_id = await UserService().create_user(
         request.name,
         request.nickname,
         temp_sms_auth.phone,
@@ -112,8 +112,8 @@ async def signup_user(request: UserSignUpRequestSchema, background_tasks: Backgr
     )
 
     token_helper = TokenHelper()
-    access_token = token_helper.encode({"user_id": user.id}, expire_period=config.JWT_ACCESS_TOKEN_EXPIRE_SECONDS)
-    refresh_token = token_helper.encode({"user_id": user.id}, expire_period=config.JWT_REFRESH_TOKEN_EXPIRE_SECONDS)
+    access_token = token_helper.encode({"user_id": user_id}, expire_period=config.JWT_ACCESS_TOKEN_EXPIRE_SECONDS)
+    refresh_token = token_helper.encode({"user_id": user_id}, expire_period=config.JWT_REFRESH_TOKEN_EXPIRE_SECONDS)
 
     background_tasks.add_task(cleanup_temp_sms_auth, request.session_id)
     return {"access_token": access_token, "refresh_token": refresh_token}
@@ -127,4 +127,4 @@ async def signup_user(request: UserSignUpRequestSchema, background_tasks: Backgr
 )
 async def get_user_profile(request: Request):
     user = await UserService().get_user(request.user.id)
-    return user
+    return user.__dict__
