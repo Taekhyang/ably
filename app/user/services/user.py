@@ -16,7 +16,7 @@ class UserService:
             phone: str,
             email: str,
             password: str
-    ) -> User:
+    ) -> int:
         user = User(
             name=name,
             nickname=nickname,
@@ -26,7 +26,7 @@ class UserService:
         )
         session.add(user)
         await session.flush()
-        return user
+        return user.id
 
     async def get_user(self, user_id: int) -> User:
         query = select(User).where(User.id == user_id)
