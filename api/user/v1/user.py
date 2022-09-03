@@ -12,7 +12,6 @@ from fastapi import (
 
 from app.user.schemas import *
 from app.user.services import UserService
-from app.user.models import User
 from core.fastapi.dependencies import (
     PermissionDependency,
     IsAuthenticated
@@ -32,8 +31,8 @@ user_router = APIRouter()
 @user_router.get(
     "/email/duplicate-check"
 )
-async def check_duplicate_email(email: str = Query(..., description="중복검사 대상 이메일")):
-    user = await UserService().get_user_by_email(email)
+async def check_duplicate_email(request: EmailDuplicateCheckRequestSchema = Depends()):
+    user = await UserService().get_user_by_email(request.email)
     if user:
         return {"is_duplicated": True}
     return {"is_duplicated": False}
@@ -42,8 +41,8 @@ async def check_duplicate_email(email: str = Query(..., description="중복검�
 @user_router.get(
     "/phone/duplicate-check"
 )
-async def check_duplicate_email(phone: str = Query(..., description="중복검사 대상 휴대폰 번호")):
-    user = await UserService().get_user_by_phone(phone)
+async def check_duplicate_email(request: PhoneDuplicateCheckRequestSchema = Depends()):
+    user = await UserService().get_user_by_phone(request.phone)
     if user:
         return {"is_duplicated": True}
     return {"is_duplicated": False}
@@ -52,15 +51,16 @@ async def check_duplicate_email(phone: str = Query(..., description="중복검�
 @user_router.get(
     "/sms-auth/send"
 )
-async def send_sms_auth_code(phone: str = Query(..., description="인증받을 휴대폰 번호")):
+async def send_sms_auth_code(request: SMSAuthSendRequestSchema = Depends()):
     session_id = generate_random_session_id()
     auth_code = str(random.randint(100000, 999999))
+    debugger.debug(f"Auth code : {auth_code}")
 
-    is_success = send_sms(phone, auth_code)
+    is_success = send_sms(request.phone, auth_code)
     if is_success:
         await UserService().create_temp_sms_auth(
             session_id,
-            phone,
+            request.phone,
             auth_code,
             dt.datetime.now()
         )
@@ -74,7 +74,7 @@ async def send_sms_auth_code(phone: str = Query(..., description="인증받을 �
 async def verify_sms_auth_code(request: AuthCodeVerificationRequestSchema):
     temp_sms_auth = await UserService().get_temp_sms_auth(request.session_id)
     if not temp_sms_auth:
-        raise NotFoundException
+        raise NotFoundException(message="session_id not found")
 
     if temp_sms_auth.auth_code == request.auth_code and temp_sms_auth.phone == request.phone:
         if temp_sms_auth.code_sent_at + dt.timedelta(seconds=config.AUTH_CODE_EXPIRE_SECONDS) < dt.datetime.now():
@@ -82,7 +82,7 @@ async def verify_sms_auth_code(request: AuthCodeVerificationRequestSchema):
 
         await UserService().set_verified_flag(request.session_id)
         return {"is_verified": True}
-    return {"is_verified": False}
+    raise SMSAuthCodeNotMatchedException
 
 
 @user_router.post(
@@ -91,10 +91,14 @@ async def verify_sms_auth_code(request: AuthCodeVerificationRequestSchema):
 async def signup_user(request: UserSignUpRequestSchema, background_tasks: BackgroundTasks):
     temp_sms_auth = await UserService().get_temp_sms_auth(request.session_id)
     if not temp_sms_auth:
-        raise NotFoundException
+        raise NotFoundException(message="session_id not found")
 
     if not temp_sms_auth.is_verified:
-        raise UnauthorizedException
+        raise UnauthorizedException(message="phone number not verified")
+
+    existing_user = await UserService().get_user_by_phone(temp_sms_auth.phone)
+    if existing_user:
+        raise DuplicateUserException
 
     hashed_pw = bcrypt.hashpw(request.password.encode("utf8"), bcrypt.gensalt())
     decoded_hash_pw = hashed_pw.decode("utf8")
@@ -102,7 +106,7 @@ async def signup_user(request: UserSignUpRequestSchema, background_tasks: Backgr
     user = await UserService().create_user(
         request.name,
         request.nickname,
-        request.phone,
+        temp_sms_auth.phone,
         request.email,
         decoded_hash_pw
     )
