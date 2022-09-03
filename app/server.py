@@ -39,9 +39,12 @@ def init_listeners(app: FastAPI) -> None:
         error_message = first_error["msg"]
         _, error_field = first_error["loc"]
 
+        if error_field == "__root__":
+            error_field = ""
+
         return JSONResponse(
             status_code=422,
-            content={"error_code": 422, "message": f"`{error_field}`: {error_message}"}
+            content={"error_code": 422, "message": f"{error_field}: {error_message}"}
         )
 
 
