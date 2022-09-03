@@ -1,5 +1,6 @@
 import re
 
+from typing import Optional
 from core.exceptions import UnprocessableEntity
 from pydantic import (
     BaseModel,
@@ -88,8 +89,8 @@ class UserProfileResponseSchema(BaseModel):
 
 
 class UserLoginRequestSchema(BaseModel):
-    email: str = Field(..., description="이메일")
-    phone: str = Field(..., description="휴대폰 번호")
+    email: Optional[str] = Field(..., description="이메일")
+    phone: Optional[str] = Field(..., description="휴대폰 번호")
     password: str = Field(..., description="비밀번호")
 
     @root_validator
@@ -98,3 +99,8 @@ class UserLoginRequestSchema(BaseModel):
         if not email and not phone:
             raise ValueError("either email or phone should be given")
         return values
+
+
+class PasswordResetRequestSchema(BaseModel):
+    session_id: str = Field(..., description="Client Session ID")
+    password: constr(min_length=8, max_length=30) = Field(..., description="8자리 이상 30자리 이하 비밀번호")
