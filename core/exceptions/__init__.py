@@ -8,7 +8,12 @@ from .base import (
     UnauthorizedException,
 )
 from .token import DecodeTokenException, ExpiredTokenException
-from .user import SMSSenderException, SMSAuthTimeoutException
+from .user import (
+    SMSSenderException,
+    SMSAuthTimeoutException,
+    SMSAuthCodeNotMatchedException,
+    DuplicateUserException
+)
 
 __all__ = [
     "CustomException",
@@ -21,5 +26,7 @@ __all__ = [
     "DecodeTokenException",
     "ExpiredTokenException",
     "SMSSenderException",
-    "SMSAuthTimeoutException"
+    "SMSAuthTimeoutException",
+    "SMSAuthCodeNotMatchedException",
+    "DuplicateUserException"
 ]
