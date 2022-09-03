@@ -128,3 +128,24 @@ async def signup_user(request: UserSignUpRequestSchema, background_tasks: Backgr
 async def get_user_profile(request: Request):
     user = await UserService().get_user(request.user.id)
     return user.__dict__
+
+
+@user_router.post(
+    "/login"
+)
+async def login_user(request: UserLoginRequestSchema):
+    if request.phone:
+        user = await UserService().get_user_by_phone(request.phone)
+    else:
+        user = await UserService().get_user_by_email(request.email)
+
+    if not user:
+        raise UnauthorizedException("user not matched")
+
+    pw_matched = bcrypt.checkpw(request.password.encode("utf8"), user.password.encode("utf8"))
+    if pw_matched:
+        token_helper = TokenHelper()
+        access_token = token_helper.encode({"user_id": user.id}, expire_period=config.JWT_ACCESS_TOKEN_EXPIRE_SECONDS)
+        refresh_token = token_helper.encode({"user_id": user.id}, expire_period=config.JWT_REFRESH_TOKEN_EXPIRE_SECONDS)
+        return {"access_token": access_token, "refresh_token": refresh_token}
+    raise UnauthorizedException("password not matched")
