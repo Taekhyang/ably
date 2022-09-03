@@ -35,9 +35,10 @@ def init_listeners(app: FastAPI) -> None:
     @app.exception_handler(RequestValidationError)
     async def request_validation_exception_handler(request: Request, exc: RequestValidationError):
         traceback.print_exc()
+        error_message = exc.errors()[0]["msg"]
         return JSONResponse(
-            status_code=400,
-            content={'error_code': 400, 'message': 'Invalid Request'}
+            status_code=422,
+            content={"error_code": 422, "message": error_message}
         )
 
 
