@@ -5,6 +5,7 @@ from pydantic import (
     BaseModel,
     Field,
     validator,
+    root_validator,
     constr
 )
 
@@ -84,3 +85,16 @@ class UserProfileResponseSchema(BaseModel):
 
     _email_format = UserCommonValidator.validate_email("email", pre=True)
     _phone_number_format = UserCommonValidator.validate_phone("phone", pre=True)
+
+
+class UserLoginRequestSchema(BaseModel):
+    email: str = Field(..., description="이메일")
+    phone: str = Field(..., description="휴대폰 번호")
+    password: str = Field(..., description="비밀번호")
+
+    @root_validator
+    def check_passwords_match(cls, values):
+        email, phone = values.get("email"), values.get("phone")
+        if not email and not phone:
+            raise ValueError("either email or phone should be given")
+        return values
