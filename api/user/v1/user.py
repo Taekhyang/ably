@@ -149,3 +149,26 @@ async def login_user(request: UserLoginRequestSchema):
         refresh_token = token_helper.encode({"user_id": user.id}, expire_period=config.JWT_REFRESH_TOKEN_EXPIRE_SECONDS)
         return {"access_token": access_token, "refresh_token": refresh_token}
     raise UnauthorizedException("password not matched")
+
+
+@user_router.put(
+    "/password"
+)
+async def reset_password(request: PasswordResetRequestSchema, background_tasks: BackgroundTasks):
+    temp_sms_auth = await UserService().get_temp_sms_auth(request.session_id)
+    if not temp_sms_auth:
+        raise NotFoundException(message="session_id not found")
+
+    if not temp_sms_auth.is_verified:
+        raise UnauthorizedException(message="phone number not verified")
+
+    user = await UserService().get_user_by_phone(temp_sms_auth.phone)
+    if not user:
+        raise NotFoundException("user not found")
+
+    new_hashed_pw = bcrypt.hashpw(request.password.encode("utf8"), bcrypt.gensalt())
+    new_decoded_pw = new_hashed_pw.decode("utf8")
+    await UserService().reset_password(user.id, new_decoded_pw)
+
+    background_tasks.add_task(cleanup_temp_sms_auth, request.session_id)
+    return {"is_password_reset": True}
