@@ -89,8 +89,8 @@ class UserProfileResponseSchema(BaseModel):
 
 
 class UserLoginRequestSchema(BaseModel):
-    email: Optional[str] = Field(..., description="이메일")
-    phone: Optional[str] = Field(..., description="휴대폰 번호")
+    email: Optional[str] = Field(None, description="이메일")
+    phone: Optional[str] = Field(None, description="휴대폰 번호")
     password: str = Field(..., description="비밀번호")
 
     @root_validator
