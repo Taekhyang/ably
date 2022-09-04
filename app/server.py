@@ -26,7 +26,7 @@ def init_listeners(app: FastAPI) -> None:
     # Exception handler
     @app.exception_handler(CustomException)
     async def custom_exception_handler(request: Request, exc: CustomException):
-        traceback.print_exc()
+        # traceback.print_exc()
         return JSONResponse(
             status_code=exc.code,
             content={"error_code": exc.error_code, "message": exc.message},
@@ -34,7 +34,7 @@ def init_listeners(app: FastAPI) -> None:
 
     @app.exception_handler(RequestValidationError)
     async def request_validation_exception_handler(request: Request, exc: RequestValidationError):
-        traceback.print_exc()
+        # traceback.print_exc()
         first_error = exc.errors()[0]
         error_message = first_error["msg"]
         _, error_field = first_error["loc"]
