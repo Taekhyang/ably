@@ -93,3 +93,6 @@
 - pydantic 의 BaseModel 을 활용하여 request, response 스키마를 검사하는 레이어를 만들었습니다. 이는
   비즈니스 로직을 좀 더 깔끔하게 할 수 있는 장점이 있습니다.
 - 유저 대기시간이 필요없는 부분은 먼저 필요한 응답을 리턴한 후 FastAPI 의 background task 로 처리했습니다.  
+- middleware 을 활용하여 error handling 과 sqlalchemy async session 생성작업을 편리하게 하였습니다.
+- FastAPI 의 dependency injection 을 활용하여 유저의 permission 을 체크하는 로직을 추가하였습니다. 해당 기능을 통해
+  비즈니스 로직에 들어가는 공통된 코드를 줄일 수 있어 매우 효과적입니다.
