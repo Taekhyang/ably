@@ -23,11 +23,6 @@ class IsAuthenticated(BasePermission):
         return request.user.id is not None
 
 
-class AllowAll(BasePermission):
-    async def has_permission(self, request: Request) -> bool:
-        return True
-
-
 class PermissionDependency(SecurityBase):
     def __init__(self, permissions: List[Type[BasePermission]]):
         self.permissions = permissions
