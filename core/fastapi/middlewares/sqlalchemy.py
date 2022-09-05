@@ -1,4 +1,4 @@
-from uuid import uuid4
+import uuid
 
 from starlette.types import ASGIApp, Receive, Scope, Send
 
@@ -10,7 +10,7 @@ class SQLAlchemyMiddleware:
         self.app = app
 
     async def __call__(self, scope: Scope, receive: Receive, send: Send) -> None:
-        session_id = str(uuid4())
+        session_id = str(uuid.uuid4())
         context = set_session_context(session_id=session_id)
 
         try:
