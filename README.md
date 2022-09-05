@@ -2,6 +2,7 @@
 
 #### 로컬 실행방법
 
+- `pip install -r requirements.txt` 을 통해 필요한 패키지를 전부 다운받습니다.
 - `cd app` 커맨드로 app 디렉토리로 이동 후  `./start.sh` 커맨드로 uvicorn asgi 서버를 띄우는 쉘 스크립트를 실행시킵니다.
 
 
