@@ -17,10 +17,10 @@ from core.fastapi.dependencies import (
     IsAuthenticated
 )
 from core.fastapi.background_tasks import cleanup_temp_sms_auth
-from core.utils.logger import debugger
 from core.utils.token_helper import TokenHelper
 from core.utils.session_generator import generate_random_session_id
 from core.utils.sms_sender import send_sms
+from core.utils.logger import debugger
 from core.config import config
 from core.exceptions import *
 
@@ -54,7 +54,7 @@ async def check_duplicate_email(request: PhoneDuplicateCheckRequestSchema = Depe
 async def send_sms_auth_code(request: SMSAuthSendRequestSchema = Depends()):
     session_id = generate_random_session_id()
     auth_code = str(random.randint(100000, 999999))
-    debugger.debug(f"Auth code : {auth_code}")
+    print(f"Auth code : {auth_code}")
 
     is_success = send_sms(request.phone, auth_code)
     if is_success:

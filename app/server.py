@@ -1,10 +1,12 @@
+from typing import List
+from pathlib import Path
+
 from fastapi import FastAPI, Request, Depends
 from fastapi.middleware import Middleware
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from fastapi.exceptions import RequestValidationError
 
-import traceback
 from api import router
 from core.config import config
 from core.exceptions import CustomException
@@ -14,8 +16,7 @@ from core.fastapi.middlewares import (
     SQLAlchemyMiddleware,
 )
 from core.db import engines, Base
-from core.utils.logger import debugger, init_logger
-from typing import List
+from core.utils.logger import debugger
 
 
 def init_routers(app: FastAPI) -> None:
@@ -104,13 +105,12 @@ async def create_db_tables():
 
 @app.on_event('startup')
 async def startup():
-    init_logger()
-    debugger.debug('Server starting up...')
+    debugger.info('Server starting up...')
 
     await create_db_tables()
-    debugger.debug('Created default tables')
+    debugger.info('Created default tables')
 
 
 @app.on_event('shutdown')
 async def shutdown_event():
-    debugger.debug('Server shutting down...')
+    debugger.info('Server shutting down...')
