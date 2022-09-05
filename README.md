@@ -96,3 +96,4 @@
 - middleware 을 활용하여 error handling 과 sqlalchemy async session 생성작업을 편리하게 하였습니다.
 - FastAPI 의 dependency injection 을 활용하여 유저의 permission 을 체크하는 로직을 추가하였습니다. 해당 기능을 통해
   비즈니스 로직에 들어가는 공통된 코드를 줄일 수 있어 매우 효과적입니다.
+- 서버 startup 시 sqlalchemy model 에 정의된 테이블이 없으면 테이블을 새로 생성하도록 했습니다.   
